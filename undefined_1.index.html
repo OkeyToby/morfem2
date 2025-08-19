@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Morfem-Ordjagt</title>
+  <style>
+    :root{
+      --bg:#f7f7fb;
+      --card:#ffffff;
+      --ink:#1f2937;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --accent-2:#10b981;
+      --danger:#ef4444;
+      --shadow:0 8px 24px rgba(0,0,0,.08);
+      --radius:16px;
+    }
+    body{margin:0;font-family:system-ui,sans-serif;background:var(--bg);color:var(--ink);}
+    .wrap{max-width:1100px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:1.2fr .8fr;gap:20px;}
+    header{max-width:1100px;margin:18px auto 0;padding:0 16px;}
+    h1{margin:0;font-size:28px}
+    .card{background:var(--card);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow);}
+    .bank,.found{display:flex;flex-wrap:wrap;gap:10px}
+    .chip{padding:8px 12px;border:1px solid #ddd;border-radius:999px;cursor:pointer;background:#fff}
+    .chip:hover{background:#eef2ff}
+    .current{font-size:20px;font-weight:600;margin-top:10px}
+    .controls{display:flex;gap:10px;margin-top:10px;flex-wrap:wrap}
+    button{padding:8px 12px;border:0;border-radius:8px;cursor:pointer}
+    button:hover{opacity:.8}
+    #message{margin-top:10px}
+    .found-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:6px;margin-top:8px}
+    .found-item{background:#f1f5f9;padding:6px;border-radius:8px;text-align:center}
+    textarea{width:100%;min-height:80px;margin-top:6px}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🧩 Morfem-Ordjagt</h1>
+  <p>Klik morfemer for at bygge ord. Morfemer kan bruges igen og igen – men samme ord tæller kun én gang.</p>
+</header>
+
+<div class="wrap">
+  <main class="card">
+    <h3>Morfem-bank</h3>
+    <div id="bank" class="bank"></div>
+
+    <div class="current">Dit ord: <span id="currentWord">—</span></div>
+
+    <div class="controls">
+      <button onclick="submitWord()">Tjek ord ✅</button>
+      <button onclick="undo()">Fortryd ⟲</button>
+      <button onclick="clearCurrent()">Nulstil ✖</button>
+    </div>
+
+    <div id="message"></div>
+
+    <h3>Fundne ord</h3>
+    <div id="found" class="found-list"></div>
+  </main>
+
+  <aside class="card">
+    <h3>Indstillinger</h3>
+    <label for="morphemes">Morfemer (kommasepareret)</label>
+    <textarea id="morphemes"></textarea>
+
+    <label for="wordlist">Ord-liste (ét ord pr. linje)</label>
+    <textarea id="wordlist"></textarea>
+
+    <button onclick="apply()">Opdater sæt ▶</button>
+  </aside>
+</div>
+
+<script>
+  let morphemes = ["bog","stav","læse","skrive","lærer","skole","barn","ord","leg","ven","dag","sang"];
+  let wordlist = ["bogstav","læsebog","skrivebog","skolebarn","ordleg","venskab","skolelærer","barnesang","skolesang","læsedag"];
+
+  let selected = [];
+  let found = new Set();
+
+  const bankEl = document.getElementById('bank');
+  const currentEl = document.getElementById('currentWord');
+  const msgEl = document.getElementById('message');
+  const foundEl = document.getElementById('found');
+  const morphemesEl = document.getElementById('morphemes');
+  const wordlistEl = document.getElementById('wordlist');
+
+  function renderBank(){
+    bankEl.innerHTML='';
+    morphemes.forEach((m,i)=>{
+      const btn=document.createElement('button');
+      btn.className='chip';
+      btn.textContent=m;
+      btn.onclick=()=>{selected.push(m);updateCurrent();};
+      bankEl.appendChild(btn);
+    });
+  }
+  function updateCurrent(){ currentEl.textContent=selected.join('')||"—"; }
+  function clearCurrent(){ selected=[];updateCurrent();msgEl.textContent=""; }
+  function undo(){ selected.pop();updateCurrent(); }
+  function submitWord(){
+    const word=selected.join('').toLowerCase();
+    if(word.length<3){msgEl.textContent="For kort.";return;}
+    if(found.has(word)){msgEl.textContent="Allerede fundet.";return;}
+    if(wordlist.includes(word)){
+      found.add(word);
+      const div=document.createElement('div');
+      div.className="found-item";div.textContent=word;
+      foundEl.appendChild(div);
+      msgEl.textContent="✔ Godkendt!";
+    }else{msgEl.textContent="❌ Ikke i ordlisten.";}
+    clearCurrent();
+  }
+  function apply(){
+    morphemes=morphemesEl.value.split(',').map(x=>x.trim()).filter(Boolean);
+    wordlist=wordlistEl.value.split(/\\r?\\n/).map(x=>x.trim()).filter(Boolean);
+    renderBank();
+    msgEl.textContent="Sæt opdateret!";
+  }
+
+  morphemesEl.value=morphemes.join(", ");
+  wordlistEl.value=wordlist.join("\\n");
+  renderBank();
+</script>
+</body>
+</html>
