@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <title>Morfem-Ordjagt</title>
+</head>
+<body>
+  <h1>🧩 Morfem-Ordjagt</h1>
+  <p>Klik på morfemer for at bygge ord. Du må bruge morfemer igen og igen – men samme ord tæller kun én gang.</p>
+
+  <div id="bank"></div>
+  <p>Dit ord: <span id="currentWord">—</span></p>
+  <button onclick="submitWord()">Tjek ord</button>
+  <button onclick="undo()">Fortryd</button>
+  <button onclick="clearCurrent()">Nulstil</button>
+
+  <p id="message"></p>
+  <h3>Fundne ord:</h3>
+  <ul id="found"></ul>
+
+  <script>
+    const morphemes = ["bog","stav","læse","skrive","lærer","skole","barn","ord","leg","ven","dag","sang"];
+    const wordlist = ["bogstav","læsebog","skrivebog","skolebarn","ordleg","venskab","skolelærer","barnesang","skolesang","læsedag"];
+
+    let selected = [];
+    let found = new Set();
+
+    const bankEl = document.getElementById('bank');
+    const currentEl = document.getElementById('currentWord');
+    const msgEl = document.getElementById('message');
+    const foundEl = document.getElementById('found');
+
+    function renderBank(){
+      bankEl.innerHTML = '';
+      morphemes.forEach((m,i)=>{
+        const btn = document.createElement('button');
+        btn.textContent = m;
+        btn.onclick = ()=>{ selected.push(m); updateCurrent(); };
+        bankEl.appendChild(btn);
+      });
+    }
+
+    function updateCurrent(){
+      currentEl.textContent = selected.join('') || '—';
+    }
+
+    function clearCurrent(){
+      selected = [];
+      updateCurrent();
+      msgEl.textContent = '';
+    }
+
+    function undo(){
+      selected.pop();
+      updateCurrent();
+    }
+
+    function submitWord(){
+      const word = selected.join('').toLowerCase();
+      if(word.length<3){ msgEl.textContent = "For kort."; return;}
+      if(found.has(word)){ msgEl.textContent = "Allerede fundet."; return;}
+      if(wordlist.includes(word)){
+        found.add(word);
+        const li = document.createElement('li');
+        li.textContent = word;
+        foundEl.appendChild(li);
+        msgEl.textContent = "✔ Godkendt!";
+      } else {
+        msgEl.textContent = "❌ Ikke i ordlisten.";
+      }
+      clearCurrent();
+    }
+
+    renderBank();
+  </script>
+</body>
+</html>
